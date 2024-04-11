@@ -25,7 +25,7 @@ class CatalogModel {
         dataLoader.loadCatalog { [weak self] catalog in
             guard let self = self else { return }
             
-            self.pcItems = catalog?.data ?? []
+            receive(pcItems: catalog?.data ?? [])
             self.delegate?.dataDidLoad()
         }
     }
@@ -56,5 +56,20 @@ class CatalogModel {
                 model: $0.model
             )
         }
+    }
+    
+    private func receive(pcItems: [Pc]) {
+        let favorites = localStorage.getFavorites()
+        var pcItems = pcItems
+        
+        pcItems.enumerated().forEach { i,pc in
+            if favorites.contains(where: { favorite in
+                favorite.id == pc.id
+            }) {
+                pcItems[i].isFavorite = true
+            }
+        }
+
+        self.pcItems = pcItems
     }
 }

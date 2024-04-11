@@ -54,36 +54,45 @@ extension CatalogViewController: CatalogViewDelegate {
 extension CatalogViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return model.pcItems.count
+        model.pcItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: "CatalogCell")
-        else {
-            assertionFailure()
-            return UITableViewCell()
-        }
+        let cell: CatalogCell = tableView.dequeueReusableCell(indexPath: indexPath)
         
         let item = model.pcItems[indexPath.row]
-        cell.textLabel?.text = item.name
-        cell.detailTextLabel?.text = item.model
         
-        cell.accessoryType = (item.isFavorite ?? false) ? .checkmark : .none
+        cell.idLabel.text = "\(item.id)"
+        cell.nameLabel.text = item.name
+        cell.descriptionLabel.text = "\(item.manufacturer),\(item.model)"
+        cell.priceLabel.text = "\(item.price),\(item.currency)"
+        
+        let isFavorite = item.isFavorite ?? false
+        cell.updateFavorite(isFavorited: isFavorite)
+        
+        cell.accessoryType = isFavorite ? .checkmark : .none
+        
+        cell.setStars(count: item.rating)
+        
+        cell.onTap = { [weak self] in
+            guard let self else { return }
+            let isFavorite = !model.pcItems[indexPath.row].favorite()
+            model.updateItem(with: isFavorite, at: indexPath.row)
+            cell.accessoryType = isFavorite ? .checkmark : .none
+            $0.updateFavorite(isFavorited: isFavorite)
+        }
         
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        UIScreen.height / 4.8
+        
     }
 }
 
 // MARK: - UITableViewDelegate
-extension CatalogViewController: UITableViewDelegate {
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-        let isFavorite = !model.pcItems[indexPath.row].favorite()
-        model.updateItem(with: isFavorite, at: indexPath.row)
-        
-        let cell = tableView.cellForRow(at: indexPath)
-        cell?.accessoryType = isFavorite ? .checkmark : .none
-    }
-}
+extension CatalogViewController: UITableViewDelegate { }
+
+

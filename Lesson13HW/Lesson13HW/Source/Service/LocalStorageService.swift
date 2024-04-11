@@ -35,6 +35,7 @@ class LocalStorageService {
             let result = try JSONDecoder().decode([Favorite].self, from: jsonData)
             return result
         } catch {
+            print(error.localizedDescription)
             return []
         }
     }
